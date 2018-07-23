@@ -6,8 +6,9 @@
 #'
 #' @param input named list with elements available for check functions
 #' @param check_results list with check results as returned by \code{\link{iamCheck}}
-#' @param file File name the summary should be written to.
+#' @param file File name the summary should be written to or a Sweave object. If a sweave object is provided the function will return the updated object, otherwise it will write its content to the file.
 #' @param maxLinesOutput maximum number of lines that should be output in the pdf
+#' @param pdfStyle list of style-options for the pdf
 #' @param ... additional arguments sent to \code{\link[lusweave]{swclose}}
 #' @author Jan Philipp Dietrich
 #' @seealso \code{\link{iamCheck}}, \code{\link{iamProjectConfig}}
@@ -24,7 +25,7 @@
 
 
 
-iamSummaryPDF <- function(input, check_results=NULL, file="summary.pdf", maxLinesOutput= 200, ...) {
+iamSummaryPDF <- function(input, check_results=NULL, file="summary.pdf", maxLinesOutput= 200, pdfStyle=NULL, ...) {
 
   template <-  c("\\documentclass[a4paper, portrait ]{article}",
                  "\\setlength{\\parindent}{0in}",
@@ -42,9 +43,14 @@ iamSummaryPDF <- function(input, check_results=NULL, file="summary.pdf", maxLine
                  "options(width=90)",
                  "@")
 
-  sw <- swopen(outfile = file, template = template)
-  swlatex(sw,c("\\title{IAMC data check}","\\author{Aperture Science Enrichment Center}","\\maketitle","\\tableofcontents"))
-  on.exit(swclose(sw, ...))
+  if(is.environment(file)) {
+    sw <- file
+  } else {
+    sw <- swopen(outfile = file, template = template)
+    swlatex(sw,c("\\title{IAMC data check}","\\author{Aperture Science Enrichment Center}","\\maketitle","\\tableofcontents"))
+    on.exit(swclose(sw, ...))
+  }
+
 
   if(length(check_results)>0) {
     swlatex(sw,"\\clearpage")
@@ -89,6 +95,6 @@ iamSummaryPDF <- function(input, check_results=NULL, file="summary.pdf", maxLine
 
   swlatex(sw,"\\clearpage")
 
-  if(!is.null(input$ref) & !is.null(input$x)) validationpdf(x=input$x, hist=input$ref, file = sw, prefix = "Validation - ", hideEmptySection = TRUE, show_stats=FALSE)
+  if(!is.null(input$ref) & !is.null(input$x)) validationpdf(x=input$x, hist=input$ref, file = sw, prefix = "Validation - ", hideEmptySection = TRUE, show_stats=FALSE, pdfStyle = pdfStyle)
 
 }
